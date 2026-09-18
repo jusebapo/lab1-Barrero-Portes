@@ -1,13 +1,13 @@
 services:
-  # api:
-  #   build: .
-  #   env_file:
-  #     - .env
-  #   ports:
-  #     - "127.0.0.1:${APP_PORT:-8000}:${APP_PORT:-8000}"
-  #   depends_on:
-  #     db:
-  #       condition: service_healthy
+  api:
+    build: .
+    env_file:
+      - .env
+    ports:
+      - "127.0.0.1:${APP_PORT:-8000}:${APP_PORT:-8000}"
+    depends_on:
+      db:
+        condition: service_healthy
 
   db:
     image: postgres:17-bookworm
