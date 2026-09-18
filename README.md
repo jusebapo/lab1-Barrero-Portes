@@ -5,7 +5,7 @@
 - Sebastian Portes (B): Juan Diego Garzon
 
 ## Descripción
-API REST sencilla para gestionar notas de un equipo.
+API REST con PostgreSQL y operaciones de escritura desarrolladas por Sebastian Portes.
 
 ## Tecnologías
 - Go y net/http.
