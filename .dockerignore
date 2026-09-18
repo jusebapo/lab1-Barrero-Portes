@@ -1,0 +1,15 @@
+.git
+.github
+.env
+.env.*
+!.env.example
+.vscode
+.idea
+evidencias
+bin
+tmp
+*.exe
+*.test
+*.out
+*.pdf
+*.docx
