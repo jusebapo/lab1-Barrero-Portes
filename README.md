@@ -5,7 +5,7 @@
 - Sebastian Portes (B): Juan Diego Garzon
 
 ## Descripción
-API REST con PostgreSQL y operaciones de escritura desarrolladas por Sebastian Portes.
+API REST en Go con PostgreSQL para gestionar notas de un equipo: Juan Barrero implementó los endpoints de consulta y Sebastian Portes implementó las operaciones de escritura.
 
 ## Tecnologías
 - Go y net/http.
