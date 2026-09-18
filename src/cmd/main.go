@@ -25,20 +25,6 @@ type application struct {
 	env string
 }
 
-type note struct {
-	ID        int64     `json:"id"`
-	Title     string    `json:"title"`
-	Content   string    `json:"content"`
-	Author    string    `json:"author"`
-	CreatedAt time.Time `json:"created_at"`
-}
-
-type noteInput struct {
-	Title   string `json:"title"`
-	Content string `json:"content"`
-	Author  string `json:"author"`
-}
-
 type endpoint func(*application, http.ResponseWriter, *http.Request)
 
 var routes = map[string]endpoint{}
