@@ -1,11 +1,11 @@
 # Laboratorio 1: GitHub, Docker y API REST
 
 ## Integrantes
-- Juan Barrero (A): Juan Barrero
-- Sebastian Portes (B): Juan Diego Garzon
+- Juan Barrero (A): USUARIO_A
+- Sebastian Portes (B): USUARIO_B
 
 ## Descripción
-API REST sencilla para gestionar notas de un equipo.
+API REST en Go con endpoints de consulta desarrollados por Juan Barrero.
 
 ## Tecnologías
 - Go y net/http.
