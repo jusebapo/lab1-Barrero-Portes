@@ -1,0 +1,10 @@
+{
+
+  "title": "Nota para persistencia",
+
+  "content": "Esta nota debe sobrevivir a docker compose down",
+
+  "author": "Equipo A y B"
+
+}
+
