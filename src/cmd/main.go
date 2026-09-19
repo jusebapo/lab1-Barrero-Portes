@@ -3,39 +3,19 @@ package main
 import (
 	"context"
 	"database/sql"
-	"encoding/json"
 	"errors"
-	"fmt"
-	"io"
 	"log"
 	"net"
 	"net/http"
 	"net/url"
 	"os"
 	"strconv"
-	"strings"
+	"team-notes-api/internal"
 	"time"
-	"unicode/utf8"
 
+	"github.com/go-playground/validator/v10"
 	_ "github.com/lib/pq"
 )
-
-type application struct {
-	db  *sql.DB
-	env string
-}
-
-type endpoint func(*application, http.ResponseWriter, *http.Request)
-
-var routes = map[string]endpoint{}
-
-func requiredEnv(key string) string {
-	value := os.Getenv(key)
-	if value == "" {
-		log.Fatalf("missing environment variable: %s", key)
-	}
-	return value
-}
 
 func main() {
 	port := requiredEnv("APP_PORT")
@@ -71,112 +51,34 @@ func main() {
 	if err != nil {
 		log.Fatal("database connection failed; check database service and environment")
 	}
+	mux := http.NewServeMux()
 
-	app := &application{db: db, env: requiredEnv("APP_ENV")}
+	v := validator.New()
+	service := internal.NewService(db, v)
+	handler := internal.NewHandler(*service)
+
+	mux.HandleFunc("POST	/api/v1/notes", handler.HandleCreateNote)
+	mux.HandleFunc("GET		/api/v1/notes", handler.HandleGetNotes)
+	mux.HandleFunc("GET 	/api/v1/notes/{id}", handler.HandleGetNoteById)
 	server := &http.Server{
 		Addr:              ":" + port,
-		Handler:           app,
+		Handler:           mux,
 		ReadHeaderTimeout: 5 * time.Second,
 		ReadTimeout:       10 * time.Second,
 		WriteTimeout:      15 * time.Second,
 		IdleTimeout:       60 * time.Second,
 	}
+
 	log.Printf("API listening on port %s", port)
 	if err := server.ListenAndServe(); !errors.Is(err, http.ErrServerClosed) {
 		log.Fatal("HTTP server stopped unexpectedly")
 	}
 }
 
-func (app *application) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	path := r.URL.Path
-	if strings.HasPrefix(path, "/notes/") {
-		id := strings.TrimPrefix(path, "/notes/")
-		if id != "" && !strings.Contains(id, "/") {
-			path = "/notes/{id}"
-			r.SetPathValue("id", id)
-		}
+func requiredEnv(key string) string {
+	value := os.Getenv(key)
+	if value == "" {
+		log.Fatalf("missing environment variable: %s", key)
 	}
-	if handler, ok := routes[r.Method+" "+path]; ok {
-		handler(app, w, r)
-		return
-	}
-	allowed := map[string]string{
-		"/health":     "GET",
-		"/notes":      "GET, POST",
-		"/notes/{id}": "GET, PUT, DELETE",
-	}
-	if methods, ok := allowed[path]; ok {
-		w.Header().Set("Allow", methods)
-		fail(w, http.StatusMethodNotAllowed, "Método no permitido")
-		return
-	}
-	fail(w, http.StatusNotFound, "Ruta no encontrada")
-}
-
-func writeJSON(w http.ResponseWriter, status int, value any) {
-	w.Header().Set("Content-Type", "application/json; charset=utf-8")
-	w.WriteHeader(status)
-	if err := json.NewEncoder(w).Encode(value); err != nil {
-		log.Print("response could not be written")
-	}
-}
-
-func fail(w http.ResponseWriter, status int, message string) {
-	writeJSON(w, status, map[string]string{"error": message})
-}
-
-func internalError(w http.ResponseWriter) {
-	log.Print("database operation failed")
-	fail(w, http.StatusInternalServerError, "No fue posible completar la operación")
-}
-
-func parseID(w http.ResponseWriter, r *http.Request) (int64, bool) {
-	id, err := strconv.ParseInt(r.PathValue("id"), 10, 64)
-	if err != nil || id < 1 {
-		fail(w, http.StatusBadRequest, "El id debe ser un entero positivo")
-		return 0, false
-	}
-	return id, true
-}
-
-func readInput(w http.ResponseWriter, r *http.Request) (noteInput, bool) {
-	var input noteInput
-	r.Body = http.MaxBytesReader(w, r.Body, 1<<20)
-	decoder := json.NewDecoder(r.Body)
-	decoder.DisallowUnknownFields()
-	if err := decoder.Decode(&input); err != nil {
-		fail(w, http.StatusBadRequest, "JSON inválido o campos no permitidos")
-		return input, false
-	}
-	if err := decoder.Decode(&struct{}{}); err != io.EOF {
-		fail(w, http.StatusBadRequest, "Debe enviar un único objeto JSON")
-		return input, false
-	}
-	input.Title = strings.TrimSpace(input.Title)
-	input.Content = strings.TrimSpace(input.Content)
-	input.Author = strings.TrimSpace(input.Author)
-	if input.Title == "" || input.Content == "" || input.Author == "" {
-		fail(w, http.StatusBadRequest, "title, content y author son obligatorios")
-		return input, false
-	}
-	if utf8.RuneCountInString(input.Title) > 200 ||
-		utf8.RuneCountInString(input.Author) > 100 {
-		fail(w, http.StatusBadRequest, "title admite hasta 200 caracteres y author hasta 100")
-		return input, false
-	}
-	return input, true
-}
-
-type scanner interface {
-	Scan(...any) error
-}
-
-func scanNote(row scanner) (note, error) {
-	var n note
-	err := row.Scan(&n.ID, &n.Title, &n.Content, &n.Author, &n.CreatedAt)
-	return n, err
-}
-
-func setLocation(w http.ResponseWriter, id int64) {
-	w.Header().Set("Location", fmt.Sprintf("/notes/%d", id))
+	return value
 }
