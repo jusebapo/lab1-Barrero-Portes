@@ -1,0 +1,29 @@
+@baseUrl = http://localhost:8000/api/v1
+
+POST {{baseUrl}}/notes
+Content-Type: application/json
+
+{
+    "author":"Juan Diego",
+    "content":"hola",
+    "title":"Titulo"
+}
+
+### Invalid Create
+POST {{baseUrl}}/notes
+Content-Type: application/json
+
+{
+    "author":"Juan Diego",
+    "content":"",
+    "title":""
+}
+
+### Get All
+GET {{baseUrl}}/notes
+Content-Type: application/json
+
+### Get by Id
+
+GET {{baseUrl}}/notes/999
+Content-Type: application/json
