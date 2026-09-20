@@ -58,10 +58,10 @@ func main() {
 	handler := internal.NewHandler(*service)
 
 	mux.HandleFunc("GET		/api/v1/notes", handler.HandleGetNotes)
-	mux.HandleFunc("GET 	/api/v1/notes/{id}", handler.HandleGetNoteById)
+	mux.HandleFunc("GET		/api/v1/notes/{id}", handler.HandleGetNoteById)
 	mux.HandleFunc("POST	/api/v1/notes", handler.HandleCreateNote)
 	mux.HandleFunc("PUT		/api/v1/notes", handler.HandleUpdateNote)
-	mux.HandleFunc("DELETE 	/api/v1/notes/{id}", handler.HandleDeleteNote)
+	mux.HandleFunc("DELETE	/api/v1/notes/{id}", handler.HandleDeleteNote)
 	server := &http.Server{
 		Addr:              ":" + port,
 		Handler:           mux,
