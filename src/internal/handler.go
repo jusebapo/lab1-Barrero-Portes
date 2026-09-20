@@ -16,7 +16,7 @@ func NewHandler(s Service) Handler {
 }
 
 func (h *Handler) HandleCreateNote(w http.ResponseWriter, r *http.Request) {
-	var i NoteInput
+	var i CreateNoteDto
 	if err := json.NewDecoder(r.Body).Decode(&i); err != nil {
 		log.Println(err.Error())
 		http.Error(w, "Invalid JSON payload", http.StatusBadRequest)
@@ -53,7 +53,32 @@ func (h *Handler) HandleGetNoteById(w http.ResponseWriter, r *http.Request) {
 	writeResponse(w, note)
 }
 
-func (h *Handler) HandleDeleteNote() {}
+func (h *Handler) HandleDeleteNote(w http.ResponseWriter, r *http.Request) {
+	id, err := strconv.Atoi(r.PathValue("id"))
+	if err != nil {
+		http.Error(w, "Invalid id,must be a positive integer", http.StatusBadRequest)
+		return
+	}
+	if err := h.s.deleteNote(id); err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+	w.WriteHeader(http.StatusOK)
+}
+
+func (h *Handler) HandleUpdateNote(w http.ResponseWriter, r *http.Request) {
+	var i UpdateNoteDto
+	if err := json.NewDecoder(r.Body).Decode(&i); err != nil {
+		log.Println(err.Error())
+		http.Error(w, "invalid payload", http.StatusBadRequest)
+		return
+	}
+	if err := h.s.updateNote(i); err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+	w.WriteHeader(http.StatusOK)
+}
 
 func writeResponse(w http.ResponseWriter, message any) {
 	bytes, err := json.Marshal(message)

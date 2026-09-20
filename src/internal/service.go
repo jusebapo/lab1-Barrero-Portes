@@ -22,7 +22,7 @@ func NewService(db *sql.DB, v *validator.Validate) *Service {
 	}
 }
 
-func (s *Service) createNote(ctx context.Context, i NoteInput) (note, error) {
+func (s *Service) createNote(ctx context.Context, i CreateNoteDto) (note, error) {
 	var n note
 	if err := s.v.Struct(i); err != nil {
 		return n, err
@@ -70,4 +70,37 @@ func (s *Service) getNoteById(id int) (note, error) {
 	return n, nil
 }
 
-func (s *Service) deleteNote() {}
+func (s *Service) deleteNote(id int) error {
+	query := "delete from notes where id = $1"
+	result, err := s.db.Exec(query, id)
+	if err != nil {
+		return err
+	}
+	rows, err := result.RowsAffected()
+	if err != nil {
+		return err
+	}
+	if rows == 0 {
+		return NoteNotFoundErr
+	}
+	return nil
+}
+
+func (s *Service) updateNote(i UpdateNoteDto) error {
+	if err := s.v.Struct(i); err != nil {
+		return err
+	}
+	query := "update notes set title = $2, content = $3, author = $4 where id = $1"
+	result, err := s.db.Exec(query, i.Id, i.Title, i.Content, i.Author)
+	if err != nil {
+		return err
+	}
+	rows, err := result.RowsAffected()
+	if err != nil {
+		return err
+	}
+	if rows == 0 {
+		return NoteNotFoundErr
+	}
+	return nil
+}
