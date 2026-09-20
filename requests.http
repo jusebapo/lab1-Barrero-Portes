@@ -24,6 +24,19 @@ GET {{baseUrl}}/notes
 Content-Type: application/json
 
 ### Get by Id
-
-GET {{baseUrl}}/notes/999
+GET {{baseUrl}}/notes/3
 Content-Type: application/json
+
+
+### Delete by Id
+DELETE {{baseUrl}}/notes/1
+
+### Update
+PUT {{baseUrl}}/notes
+Content-Type: application/json
+
+{   "id":3,
+    "author":"Juan Diego",
+    "content":"Nota actualizada desde endpoint",
+    "title":"Actualizada"
+}
