@@ -1,16 +1,14 @@
-FROM golang:1.27-bookworm AS build
+FROM golang:1.27-alpine AS build
 WORKDIR /app
 
 COPY go.mod go.sum ./
 RUN go mod download
 
 COPY . .
-RUN CGO_ENABLED=0 GOOS=linux go build -trimpath -o /out/api .
+RUN CGO_ENABLED=0 GOOS=linux go build -o /out/api cmd/main.go
 
-FROM debian:bookworm-slim
-WORKDIR /app
-COPY --from=build /out/api /app/api
+FROM scratch
+COPY --from=build /out/api /api
 
-USER 65532:65532
 EXPOSE 8000
-CMD ["/app/api"]
+ENTRYPOINT [ "/api" ]
